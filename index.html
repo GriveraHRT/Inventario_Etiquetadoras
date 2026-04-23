@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventario Etiquetadoras HRT</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>Etiquetadoras HRT</h1>
+        <p>Inventario y hoja de vida</p>
+      </div>
+      <button id="admin-btn" class="btn ghost">Admin</button>
+    </header>
+
+    <main>
+      <section class="card">
+        <div class="section-title-row">
+          <h2>Ubicaciones</h2>
+          <button id="refresh-btn" class="btn ghost small">Actualizar</button>
+        </div>
+        <div id="locations-container" class="accordion-root"></div>
+      </section>
+
+      <section id="device-view" class="card hidden">
+        <div class="section-title-row">
+          <h2 id="device-title">Hoja de vida</h2>
+          <button id="close-device-view" class="btn ghost small">Cerrar</button>
+        </div>
+        <div id="device-content"></div>
+      </section>
+    </main>
+
+    <dialog id="admin-dialog">
+      <form method="dialog" class="dialog-content" id="admin-login-form">
+        <h3>Acceso administrador</h3>
+        <label for="admin-password">Contraseña</label>
+        <input id="admin-password" name="password" type="password" required />
+        <div class="dialog-actions">
+          <button type="button" class="btn ghost" id="admin-cancel-btn">Cancelar</button>
+          <button type="submit" class="btn">Ingresar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="location-dialog">
+      <form method="dialog" class="dialog-content" id="location-form">
+        <h3 id="location-dialog-title">Editar ubicación</h3>
+        <input type="hidden" id="location-id" />
+        <label>Piso</label>
+        <input id="location-floor" required />
+        <label>Área</label>
+        <input id="location-area" required />
+        <label>Sub-área</label>
+        <input id="location-subarea" required />
+        <label>Orden piso</label>
+        <input id="location-order-floor" type="number" min="0" value="0" />
+        <label>Orden área</label>
+        <input id="location-order-area" type="number" min="0" value="0" />
+        <div class="dialog-actions">
+          <button type="button" class="btn danger ghost" id="delete-location-btn">Eliminar</button>
+          <button type="button" class="btn ghost" id="cancel-location-btn">Cancelar</button>
+          <button type="submit" class="btn">Guardar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="device-dialog">
+      <form method="dialog" class="dialog-content" id="device-form">
+        <h3 id="device-dialog-title">Editar equipo</h3>
+        <input type="hidden" id="edit-device-id" />
+        <label>Nombre real / asignado</label>
+        <input id="edit-nombre-real" required />
+        <label>Nombre práctico</label>
+        <input id="edit-nombre-practico" required />
+        <label>Número de serie</label>
+        <input id="edit-serial" required />
+        <label>Modelo</label>
+        <select id="edit-modelo" required></select>
+        <label>Tipo de conexión</label>
+        <select id="edit-conexion" required></select>
+        <label>Dirección IP</label>
+        <input id="edit-ip" />
+        <label>Ubicación (texto libre)</label>
+        <input id="edit-ubicacion-otro" />
+        <label>Comentario de estado</label>
+        <textarea id="edit-comentario" rows="3"></textarea>
+        <label>Ubicación</label>
+        <select id="edit-location-id" required></select>
+        <label>Fotografía (opcional)</label>
+        <input id="edit-photo" type="file" accept="image/*" />
+        <div class="dialog-actions">
+          <button type="button" class="btn danger ghost" id="delete-device-btn">Eliminar</button>
+          <button type="button" class="btn ghost" id="cancel-device-btn">Cancelar</button>
+          <button type="submit" class="btn">Guardar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="device-card-template">
+      <article class="device-card">
+        <button class="device-open"></button>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
