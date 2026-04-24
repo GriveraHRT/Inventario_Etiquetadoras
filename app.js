@@ -445,10 +445,14 @@ function fileToBase64(file) {
 }
 
 async function apiCall(action, payload = {}) {
+  const formBody = new URLSearchParams();
+  formBody.set("action", action);
+  formBody.set("payload", JSON.stringify(payload));
+
   const response = await fetch(API_BASE_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action, ...payload }),
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+    body: formBody.toString(),
   });
   const data = await response.json();
   if (!data.ok) throw new Error(data.error || "Error no controlado");

@@ -43,7 +43,7 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    const body = JSON.parse(e.postData?.contents || "{}");
+    const body = parseRequestBody_(e);
     const action = body.action;
     if (!action) throw new Error("Accion no informada");
 
@@ -364,4 +364,33 @@ function truthy_(value) {
 
 function jsonResponse_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function parseRequestBody_(e) {
+  const raw = e?.postData?.contents || "";
+  let body = {};
+
+  if (raw) {
+    try {
+      body = JSON.parse(raw);
+    } catch (jsonError) {
+      body = {};
+    }
+  }
+
+  if (e?.parameter) {
+    body = Object.assign({}, e.parameter, body);
+  }
+
+  if (body.payload && typeof body.payload === "string") {
+    try {
+      const parsedPayload = JSON.parse(body.payload);
+      body = Object.assign({}, parsedPayload, body);
+      delete body.payload;
+    } catch (payloadError) {
+      throw new Error("Payload invalido");
+    }
+  }
+
+  return body;
 }
