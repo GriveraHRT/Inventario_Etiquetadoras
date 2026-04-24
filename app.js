@@ -1,4 +1,4 @@
-const API_BASE_URL = "PEGAR_AQUI_URL_WEBAPP_APPS_SCRIPT";
+const API_BASE_URL = "https://script.google.com/macros/s/AKfycbxmBjoAc3VVzZXEyK63iFo8jT2vnku08qoVlDi8tNLqmXgCxU9iw-yOSbKHyxafpF01Fw/exec";
 
 const state = {
   isAdmin: false,
