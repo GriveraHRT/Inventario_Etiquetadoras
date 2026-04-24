@@ -7,6 +7,7 @@ const SHEETS = {
 };
 
 const ADMIN_PASSWORD = "HRT123";
+const SPREADSHEET_ID = "1YKtzGcpz-h42FMz6LnIW6fobkRYlJ3uhxRjNRF1YVUE";
 
 const HEADERS = {
   [SHEETS.UBICACIONES]: ["id", "piso", "area", "subarea", "ordenPiso", "ordenArea", "activo"],
@@ -84,7 +85,7 @@ function doPost(e) {
 }
 
 function initDatabase_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet_();
   Object.keys(HEADERS).forEach((sheetName) => {
     const sheet = getOrCreateSheet_(ss, sheetName);
     ensureHeaders_(sheet, HEADERS[sheetName]);
@@ -95,7 +96,7 @@ function initDatabase_() {
 }
 
 function getBootstrapData_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet_();
   const locations = getRowsAsObjects_(ss.getSheetByName(SHEETS.UBICACIONES)).filter((r) => truthy_(r.activo));
   const devices = getRowsAsObjects_(ss.getSheetByName(SHEETS.DISPOSITIVOS)).filter((r) => truthy_(r.activo));
   const bitacora = getRowsAsObjects_(ss.getSheetByName(SHEETS.BITACORA))
@@ -108,7 +109,7 @@ function addBitacora_(payload) {
   if (!payload.dispositivoId || !payload.tipoEvento || !payload.descripcion || !payload.iniciales) {
     throw new Error("Faltan campos obligatorios para bitacora");
   }
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.BITACORA);
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.BITACORA);
   const newRow = [
     generateId_("B"),
     payload.dispositivoId,
@@ -123,7 +124,7 @@ function addBitacora_(payload) {
 
 function upsertLocation_(location) {
   if (!location || !location.piso || !location.area || !location.subarea) throw new Error("Ubicacion incompleta");
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.UBICACIONES);
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.UBICACIONES);
   const headers = HEADERS[SHEETS.UBICACIONES];
   const data = getRowsAsObjects_(sheet);
 
@@ -151,7 +152,7 @@ function upsertLocation_(location) {
 
 function deleteLocation_(id) {
   if (!id) throw new Error("ID requerido");
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet_();
   const devices = getRowsAsObjects_(ss.getSheetByName(SHEETS.DISPOSITIVOS)).filter((d) => truthy_(d.activo));
   if (devices.some((d) => d.ubicacionId === id)) throw new Error("La ubicacion tiene equipos asociados");
   softDeleteById_(ss.getSheetByName(SHEETS.UBICACIONES), id);
@@ -162,7 +163,7 @@ function upsertDevice_(device) {
   if (!device || !device.nombreReal || !device.nombrePractico || !device.numeroSerie || !device.ubicacionId) {
     throw new Error("Datos de equipo incompletos");
   }
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.DISPOSITIVOS);
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.DISPOSITIVOS);
   const headers = HEADERS[SHEETS.DISPOSITIVOS];
   const data = getRowsAsObjects_(sheet);
   const now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
@@ -183,7 +184,7 @@ function upsertDevice_(device) {
 
 function deleteDevice_(id) {
   if (!id) throw new Error("ID requerido");
-  softDeleteById_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.DISPOSITIVOS), id);
+  softDeleteById_(getSpreadsheet_().getSheetByName(SHEETS.DISPOSITIVOS), id);
   return { id };
 }
 
@@ -198,7 +199,7 @@ function saveDevicePhoto_(payload) {
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   const url = file.getUrl();
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.DISPOSITIVOS);
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.DISPOSITIVOS);
   const data = getRowsAsObjects_(sheet);
   const idx = data.findIndex((d) => d.id === payload.deviceId);
   if (idx < 0) throw new Error("Equipo no encontrado");
@@ -232,7 +233,7 @@ function mapDeviceRow_(id, device, fotoUrl, fechaCreacion, fechaActualizacion, a
 }
 
 function seedOptions_() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.OPCIONES);
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.OPCIONES);
   if (sheet.getLastRow() > 1) return;
   const rows = [
     ["modelo", "ZD220", true],
@@ -245,7 +246,7 @@ function seedOptions_() {
 }
 
 function seedConfig_() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CONFIG);
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.CONFIG);
   if (sheet.getLastRow() > 1) return;
   const rows = [
     ["driveFolderId", ""],
@@ -255,7 +256,7 @@ function seedConfig_() {
 }
 
 function seedLocations_() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.UBICACIONES);
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.UBICACIONES);
   if (sheet.getLastRow() > 1) return;
   const rows = buildInitialLocations_().map((loc) => [generateId_("L"), loc.piso, loc.area, loc.subarea, loc.ordenPiso, loc.ordenArea, true]);
   sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
@@ -300,7 +301,7 @@ function pushRange_(rows, piso, area, baseName, from, to, ordenPiso, ordenArea) 
 }
 
 function getConfigValue_(key) {
-  const data = getRowsAsObjects_(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.CONFIG));
+  const data = getRowsAsObjects_(getSpreadsheet_().getSheetByName(SHEETS.CONFIG));
   const row = data.find((r) => r.clave === key);
   return row ? row.valor : "";
 }
@@ -322,6 +323,13 @@ function softDeleteById_(sheet, id) {
 
 function getOrCreateSheet_(ss, sheetName) {
   return ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
+}
+
+function getSpreadsheet_() {
+  if (!SPREADSHEET_ID || SPREADSHEET_ID === "PEGAR_ID_DE_TU_GOOGLE_SHEET") {
+    throw new Error("Configura SPREADSHEET_ID en Código.gs con el ID de tu Google Sheet");
+  }
+  return SpreadsheetApp.openById(SPREADSHEET_ID);
 }
 
 function ensureHeaders_(sheet, headers) {
